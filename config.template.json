@@ -1,22 +1,40 @@
 {
+	"version": 2,
 	"addonsDir": "path/to/World of Warcraft/Interface/AddOns",
 	"files": {
 		"DBM-TombofSargeras/MaidenofVigilance.lua": {
-			"timerBlowbackCD": {
-				"alias": "Blowback Soon",
-				"message": "Refresh dots before %.1f!",
-				"preemptSeconds": 10,
-				"channel": "SAY"
+			"premonition": {
+				"timerBlowbackCD": {
+					"alias": "Blowback Soon",
+					"message": "Refresh dots before %.1f!",
+					"seconds": 10,
+					"channel": "SAY"
+				},
+				"timerMassInstabilityCD": {
+					"fullMessage": "Something's coming!",
+					"seconds": 4
+				}
 			},
-			"timerMassInstabilityCD": {
-				"fullMessage": "Something's coming!",
-				"preemptSeconds": 4
+			"event": {
+				"SPELL_AURA_REMOVED": {
+					"235028": {
+						"alias": "Bulwark Removed",
+						"message": "Interrupt!",
+						"channel": "SAY"
+					}
+				},
+				"SPELL_CAST_START": {
+					"235267": {
+						"fullMessage": "She's getting unstable...",
+						"channel": "SAY"
+					}
+				}
 			}
 		},
 		"DBM-TombofSargeras/FallenAvatar.lua": {
 			"timerRuptureRealitiesCD": {
 				"fullMessage": "Something's not right...",
-				"preemptSeconds": 5,
+				"seconds": 5,
 				"channel": "SAY"
 			}
 		}
