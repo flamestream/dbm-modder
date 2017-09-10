@@ -86,9 +86,9 @@ The configuration file is in [JSON format](http://www.json.org/). Here is a docu
      */
     "DBM-TombofSargeras/FallenAvatar.lua": {
       "timerRuptureRealitiesCD": {
-          "fullMessage": "Something's not right...",
-          "preemptSeconds": 5,
-          "channel": "SAY"
+        "fullMessage": "Something's not right...",
+        "preemptSeconds": 5,
+        "channel": "SAY"
       }
     }
   }
