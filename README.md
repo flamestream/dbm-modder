@@ -7,7 +7,7 @@ This is a python3 script that automatically edits World of Warcraft DBM addon fi
 1. Make a copy of `config.template.json` and rename it `config.json`
 2. Run `dbm-modder.py`
 
-By default, the script will look for the addon files at the default install location of Windows 7+ (typically C:\Users\Public\Games\World of Warcraft\Interface\Addons). If your addons folder is not found there, the configuration file should be modified for your environment.
+By default, the script will look for the addon files at the default install location of Windows 7+ (typically `C:\Users\Public\Games\World of Warcraft\Interface\Addons`). If your `Addons` folder is not found there, the configuration file should be modified for your environment.
 
 ### Config File Format
 
