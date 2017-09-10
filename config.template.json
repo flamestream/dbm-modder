@@ -1,0 +1,24 @@
+{
+	"addonsDir": "path/to/World of Warcraft/Interface/AddOns",
+	"files": {
+		"DBM-TombofSargeras/MaidenofVigilance.lua": {
+			"timerBlowbackCD": {
+				"alias": "Blowback Soon",
+				"message": "Refresh dots before %.1f!",
+				"preemptSeconds": 10,
+				"channel": "SAY"
+			},
+			"timerMassInstabilityCD": {
+				"fullMessage": "Something's coming!",
+				"preemptSeconds": 4
+			}
+		},
+		"DBM-TombofSargeras/FallenAvatar.lua": {
+			"timerRuptureRealitiesCD": {
+				"fullMessage": "Something's not right...",
+				"preemptSeconds": 5,
+				"channel": "SAY"
+			}
+		}
+	}
+}
