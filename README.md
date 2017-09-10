@@ -1,15 +1,22 @@
 # Custom Modder for Deadly Boss Mods
 
-This is a python3 script that automatically edits World of Warcraft DBM addon files, adding chat messages before something is going to happen. Perfect for reminding your co-raiders (or yourself) of a particular event in the encounter, or simply to add a little RP.
+This is a python3 script that automatically edits World of Warcraft DBM add-on files,
+adding chat messages before something is going to happen.
+Perfect for reminding your co-raiders (or yourself) of a particular event in the encounter,
+or simply to add a little RP.
 
 ## Usage
 
 1. Make a copy of `config.template.json` and rename it `config.json`
 2. Run `dbm-modder.py`
 
-By default, the script will look for the addon files at the default install location of Windows 7+ (typically `C:\Users\Public\Games\World of Warcraft\Interface\Addons`). If your `Addons` folder is not found there, the configuration file should be modified for your environment.
+By default, the script will look for the add-on files at the default install location
+of Windows 7+ (typically `C:\Users\Public\Games\World of Warcraft\Interface\AddOns`).
+If your `AddOns` folder is not found there, the configuration file should
+be modified for your environment.
 
-**IMPORTANT NOTE:** Your changes will be lost as soon as you update/replace DBM. To restore your changes, simply run the script again.
+**IMPORTANT NOTE:** Your changes will be lost as soon as you update/replace DBM.
+To restore them, simply run the script again.
 
 ### Config File Format
 
@@ -18,68 +25,141 @@ The configuration file is in [JSON format](http://www.json.org/). Here is a docu
 ```JavaScript
 {
   /**
-   * A custom directory to look for WoW addon files
+   * Indicates the config version number.
+   * @type Number
+   * @required true
+   */
+  "version": 2,
+
+  /**
+   * A custom directory to look for WoW add-on files.
    * @type String
    * @required false
-   * @default [[ Default Install Path: %HOME%\Public\Games\World of Warcraft\Interface\Addons ]]
+   * @default [[ The default WoW install directory's AddOns folder ]]
    */
   "addonsDir": "G:/World of Warcraft/Interface/AddOns",
 
   "files": {
     /**
-     * DBM file to mod. File path should be relative to addon directory.
+     * DBM file to mod. File path should be relative to Addons directory.
      */
     "DBM-TombofSargeras/MaidenofVigilance.lua": {
 
       /**
-       * Timer ID. Corresponds to a local timer variable name in target file
+       * Key: "premonition"
+       * Section indicates advance alerts.
        */
-      "timerBlowbackCD": {
+      "premonition": {
         /**
-         * A human-friendly name for the timer.
-         * @required false
-         * @default [[ Timer ID ]]
+         * Key: Timer ID
+         * Corresponds to a local timer variable name in target file.
          */
-        "alias": "Blowback Soon",
+        "timerBlowbackCD": {
+          /**
+           * A human-friendly name for the timer.
+           * @required false
+           * @default [[ Timer ID ]]
+           */
+          "alias": "Blowback Soon",
+
+          /**
+           * A custom message to follow the timer label.
+           * The string can use a single option to display the expected time.
+           * @required false
+           * @default "%.0f seconds"
+           */
+          "message": "Refresh dots before %.1f!",
+
+          /**
+           * Number of seconds to display chat message ahead of event.
+           * @type Number
+           * @required false
+           * @default 5
+           */
+          "seconds": 10,
+
+          /**
+           * WOWAPI channel type ID.
+           * More info: https://wow.gamepedia.com/ChatTypeId
+           * @type String
+           * @required false
+           * @default "YELL"
+           */
+          "channel": "SAY"
+        },
 
         /**
-         * A custom message to follow the timer label.
-         * The string can use a single option to display the expected time.
-         * @required false
-         * @default [[ %.0f seconds ]]
+         * (Second) Key: Timer ID
+         * @required true
          */
-        "message": "Refresh dots before %.1f!",
-
-        /**
-         * Number of seconds to display chat message ahead of event.
-         * @type Number
-         * @required false
-         * @default 5
-         */
-        "preemptSeconds": 10,
-
-        /**
-         * WOWAPI channel type ID. More info: https://wow.gamepedia.com/ChatTypeId
-         * @type String
-         * @required false
-         * @default "YELL"
-         */
-        "channel": "SAY"
+        "timerMassInstabilityCD": {
+          /**
+           * If the template message is not to your liking, the full chat message
+           * can be customized with this key.
+           * The string can use a single option to display the expected time.
+           * @required false
+           */
+          "fullMessage": "Something's coming!",
+          "seconds": 4
+        }
       },
 
       /**
-       * (Second) Timer ID.
-       * @required true
+       * Key: "event"
+       * Section indicates immediate alerts.
        */
-      "timerMassInstabilityCD": {
+      "event": {
         /**
-         * If the template message is not to your liking, the full chat message
-         * can be customized with this key.
-         * The string can use a single option to display the expected time.
-         * @required false
+         * WOWAPI combat event ID.
+         * More info: http://wowprogramming.com/docs/events
          */
-        "fullMessage": "Something's coming!",
-        "preemptSeconds": 4
+        "SPELL_AURA_REMOVED": {
+          /**
+           * WOWAPI Spell ID.
+           * You can find them over Wowhead
+           */
+          "235028": {
+
+            /**
+             * A human-friendly name for the spell.
+             * @required false
+             * @default [[ Spell ID ]]
+             */
+            "alias": "Bulwark Removed",
+
+            /**
+             * A custom message to follow the spell label.
+             * @required false
+             * @default [[ Combat event ID ]]
+             */
+              "message": "Interrupt!",
+
+            /**
+             * WOWAPI channel type ID.
+             * More info: https://wow.gamepedia.com/ChatTypeId
+             * @type String
+             * @required false
+             * @default "YELL"
+             */
+            "channel": "SAY"
+          }
+        },
+
+        /**
+         * (Second) Combat event
+         */
+        "SPELL_CAST_START": {
+          "235267": {
+            /**
+             * If the template message is not to your liking, the full chat message
+             * can be customized with this key.
+             * The string can use a single option to display the expected time.
+             * @required false
+             */
+            "fullMessage": "She's getting unstable...",
+            "channel": "SAY"
+          }
+        }
       }
     },
 
@@ -89,7 +169,7 @@ The configuration file is in [JSON format](http://www.json.org/). Here is a docu
     "DBM-TombofSargeras/FallenAvatar.lua": {
       "timerRuptureRealitiesCD": {
         "fullMessage": "Something's not right...",
-        "preemptSeconds": 5,
+        "seconds": 5,
         "channel": "SAY"
       }
     }
