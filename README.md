@@ -104,7 +104,7 @@ The configuration file is in [JSON format](http://www.json.org/). Here is a docu
       "event": {
         /**
          * WOWAPI combat event ID.
-         * More info: https://wow.gamepedia.com/Category:API_events/Combat
+         * More info: http://wowprogramming.com/docs/events
          */
         "SPELL_AURA_REMOVED": {
           /**
