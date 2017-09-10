@@ -15,83 +15,83 @@ The configuration file is in [JSON format](http://www.json.org/). Here is a docu
 
 ```JavaScript
 {
-	/**
-	 * A custom directory to look for WoW addon files
-	 * @type String
-	 * @required false
-	 * @default [[ Default Install Path: %HOME%\Public\Games\World of Warcraft\Interface\Addons ]]
-	 */
-	"addonsDir": "G:/World of Warcraft/Interface/AddOns",
+  /**
+   * A custom directory to look for WoW addon files
+   * @type String
+   * @required false
+   * @default [[ Default Install Path: %HOME%\Public\Games\World of Warcraft\Interface\Addons ]]
+   */
+  "addonsDir": "G:/World of Warcraft/Interface/AddOns",
 
-	"files": {
-		/**
-		 * DBM file to mod. File path should be relative to addon directory.
-		 */
-		"DBM-TombofSargeras/MaidenofVigilance.lua": {
+  "files": {
+    /**
+     * DBM file to mod. File path should be relative to addon directory.
+     */
+    "DBM-TombofSargeras/MaidenofVigilance.lua": {
 
-			/**
-			 * Timer ID. Corresponds to a local timer variable name in target file
-			 */
-			"timerBlowbackCD": {
-				/**
-				 * A human-friendly name for the timer.
-				 * @required false
-				 * @default [[ Timer ID ]]
-				 */
-				"alias": "Blowback Soon",
+      /**
+       * Timer ID. Corresponds to a local timer variable name in target file
+       */
+      "timerBlowbackCD": {
+        /**
+         * A human-friendly name for the timer.
+         * @required false
+         * @default [[ Timer ID ]]
+         */
+        "alias": "Blowback Soon",
 
-				/**
-				 * A custom message to follow the timer label.
-				 * The string can use a single option to display the expected time.
-				 * @required false
-				 * @default [[ %.0f seconds ]]
-				 */
-				"message": "Refresh dots before %.1f!",
+        /**
+         * A custom message to follow the timer label.
+         * The string can use a single option to display the expected time.
+         * @required false
+         * @default [[ %.0f seconds ]]
+         */
+        "message": "Refresh dots before %.1f!",
 
-				/**
-				 * Number of seconds to display chat message ahead of event.
-				 * @type Number
-				 * @required false
-				 * @default 5
-				 */
-				"preemptSeconds": 10,
+        /**
+         * Number of seconds to display chat message ahead of event.
+         * @type Number
+         * @required false
+         * @default 5
+         */
+        "preemptSeconds": 10,
 
-				/**
-				 * WOWAPI channel type ID. More info: https://wow.gamepedia.com/ChatTypeId
-				 * @type String
-				 * @required false
-				 * @default "YELL"
-				 */
-				"channel": "SAY"
-			},
+        /**
+         * WOWAPI channel type ID. More info: https://wow.gamepedia.com/ChatTypeId
+         * @type String
+         * @required false
+         * @default "YELL"
+         */
+        "channel": "SAY"
+      },
 
-			/**
-			 * (Second) Timer ID.
-			 * @required true
-			 */
-			"timerMassInstabilityCD": {
-				/**
-				 * If the template message is not to your liking, the full chat message
-				 * can be customized with this key.
-				 * The string can use a single option to display the expected time.
-				 * @required false
-				 */
-				"fullMessage": "Something's coming!",
-				"preemptSeconds": 4
-			}
-		},
+      /**
+       * (Second) Timer ID.
+       * @required true
+       */
+      "timerMassInstabilityCD": {
+        /**
+         * If the template message is not to your liking, the full chat message
+         * can be customized with this key.
+         * The string can use a single option to display the expected time.
+         * @required false
+         */
+        "fullMessage": "Something's coming!",
+        "preemptSeconds": 4
+      }
+    },
 
-		/**
-		 * (Second) DBM file to mod.
-		 */
-		"DBM-TombofSargeras/FallenAvatar.lua": {
+    /**
+     * (Second) DBM file to mod.
+     */
+    "DBM-TombofSargeras/FallenAvatar.lua": {
 
-			"timerRuptureRealitiesCD": {
-				"fullMessage": "Something's not right...",
-				"preemptSeconds": 5,
-				"channel": "SAY"
-			}
-		}
-	}
+        "timerRuptureRealitiesCD": {
+            "fullMessage": "Something's not right...",
+            "preemptSeconds": 5,
+            "channel": "SAY"
+        }
+    }
+  }
 }
 ```
