@@ -169,8 +169,8 @@ def generate_event_chat_table_block_lua_code(event_definition_dict):
 			channel = spell_event_definition_dict.get('channel', DEFAULT_EVENT_CHAT_CHANNEL)
 			message = spell_event_definition_dict.get('fullMessage')
 			if not message:
-				label = current_event_definition_dict.get('alias', spell_id)
-				desc = current_event_definition_dict.get('message', event_id)
+				label = spell_event_definition_dict.get('alias', spell_id)
+				desc = spell_event_definition_dict.get('message', event_id)
 				message = '[%s] %s' % (label, desc)
 
 			out += '\t\t[%s] = {"%s", "%s"},\n' % (spell_id, message, channel)
