@@ -124,38 +124,17 @@ def generate_unset_premonition_yell_lua_code(indent, timer_id):
 
 	return '%sfs_unset_%s(self) %s' % (indent, timer_id, LUA_COMMENT_LINE)
 
-def generate_comment_lua_code(line):
+def generate_line_comment_lua_code(line):
 
-	return "--%s%s" % (line, LUA_COMMENT_ORIGINAL)
+	return '--%s%s' % (line, LUA_COMMENT_ORIGINAL)
+
+def generate_block_comment_lua_code(block):
+
+	return '%s\n%s\n%s' % (LUA_COMMENT_START_BLOCK, block, LUA_COMMENT_END_BLOCK)
 
 def generate_uncomment_lua_code(line):
 
 	return line[2:-len(LUA_COMMENT_ORIGINAL)]
-
-# --- LUA CODE PARSERS --- #
-
-def parse_combat_event_register_lua_code(line):
-
-	matches = re.match(r'[ \t]*"(\w+) (((\w+)\s*)+)",?', line)
-
-	if not matches:
-		print("  Error processing combat event register line: %s" % line)
-		return '', []
-
-	event_id = matches.group(1)
-	spell_ids = set(matches.group(2).split(' '))
-	return event_id, spell_ids
-
-def parse_event_function_lua_code(line):
-
-	matches = re.match(r'function mod:([^(]+)\(args\)', line)
-
-	if not matches:
-		print("  Error processing event function line: %s" % line)
-		return
-
-	event_id = matches.group(1)
-	return event_id
 
 def generate_event_chat_table_block_lua_code(event_definition_dict):
 
@@ -186,9 +165,42 @@ def generate_event_block_lua_code(event_id):
 	if fs_args then SendChatMessage(fs_args[1], fs_args[2]) end
 ''' % event_id
 
-	out = '%s\n%s\n%s' % (LUA_COMMENT_START_BLOCK, out, LUA_COMMENT_END_BLOCK)
+	return out
+
+def generate_function_event_block_lua_code(event_id):
+
+	out = '''
+function mod:%s(args)
+%s
+end
+''' % (event_id, generate_event_block_lua_code(event_id))
 
 	return out
+
+# --- LUA CODE PARSERS --- #
+
+def parse_combat_event_register_lua_code(line):
+
+	matches = re.match(r'[ \t]*"(\w+) (((\w+)\s*)+)",?', line)
+
+	if not matches:
+		print("  Error processing combat event register line: %s" % line)
+		return '', []
+
+	event_id = matches.group(1)
+	spell_ids = set(matches.group(2).split(' '))
+	return event_id, spell_ids
+
+def parse_event_function_lua_code(line):
+
+	matches = re.match(r'function mod:([^(]+)\(args\)', line)
+
+	if not matches:
+		print("  Error processing event function line: %s" % line)
+		return
+
+	event_id = matches.group(1)
+	return event_id
 
 # --- ADD/REMOVE LINE LOGIC --- #
 
@@ -249,10 +261,12 @@ def add_generated_code(definition_dict, file_lines):
 
 	# Scan file for key information
 	is_register_combat_event_block = False
+	last_line_register_combat_event_block = None
 	for idx, line in enumerate(file_lines):
 
 		if is_register_combat_event_block:
-			if line .startswith(')'):
+			if line.startswith(')'):
+				last_line_register_combat_event_block = idx - 1
 				is_register_combat_event_block = False
 			else:
 				event_id, spell_ids = parse_combat_event_register_lua_code(line)
@@ -284,6 +298,7 @@ def add_generated_code(definition_dict, file_lines):
 		target_seconds_dict[timer_id] = target_seconds
 
 	# Check registered combat events
+	missing_events = []
 	if 'event' in definition_dict:
 
 		# Generate more helper code
@@ -293,8 +308,12 @@ def add_generated_code(definition_dict, file_lines):
 
 			event_func_checks.append('function mod:%s(' % event_id)
 
-			# TODO Handle case if event ID is not defined
-			event_info_dict = event_dict[event_id]
+			# Registered check
+			event_info_dict = event_dict.get(event_id)
+			if not event_info_dict:
+				missing_events.append(event_id)
+				continue
+
 			additional_spell_ids = event_definition_dict.keys() - event_info_dict['spell_ids']
 			if additional_spell_ids:
 				print('  Detected new spell %s IDs %s' % (event_id, additional_spell_ids))
@@ -303,12 +322,23 @@ def add_generated_code(definition_dict, file_lines):
 	event_func_checks = tuple(event_func_checks)
 
 	# Finalize helper code
-	helper_code = '%s\n%s\n%s' % (LUA_COMMENT_START_BLOCK, helper_code, LUA_COMMENT_END_BLOCK)
+	helper_code = generate_block_comment_lua_code(helper_code)
 
 	# Inject code
 	for idx, line in zip(range(len(file_lines)-1, -1, -1), reversed(file_lines)):
 
-		if 'function mod:OnCombatStart(' in line:
+		if idx == last_line_register_combat_event_block:
+
+			if not missing_events:
+				continue
+
+			missing_events_block = '\n'.join('\t"%s %s",' % (missing_event, ' '.join(definition_dict['event'][missing_event].keys())) for missing_event in missing_events)
+			missing_events_block = generate_block_comment_lua_code(missing_events_block)
+
+			print('  Register missing events %s at line %d (%d lines)' % (', '.join(missing_events), idx, len(missing_events_block.splitlines())))
+			file_lines[idx] = '%s\n%s' % (missing_events_block, line)
+
+		elif 'function mod:OnCombatStart(' in line:
 
 			print('  Add helper code at line %d (%d lines)' % (idx + 1, len(helper_code.splitlines())))
 			file_lines.insert(idx, helper_code)
@@ -352,7 +382,7 @@ def add_generated_code(definition_dict, file_lines):
 				print('  Error processing line %d :: %s' % (idx + 1, line))
 				continue
 
-			new_line = generate_event_block_lua_code(event_id)
+			new_line = generate_block_comment_lua_code(generate_event_block_lua_code(event_id))
 			file_lines.insert(idx + 1, new_line)
 			print('  Add %s event code at line %d (%d lines)' % (event_id, idx + 1, len(helper_code.splitlines())))
 
@@ -360,12 +390,16 @@ def add_generated_code(definition_dict, file_lines):
 
 			replace_line = replace_line_dict[line]
 			del replace_line_dict[line]
-			file_lines[idx] = generate_comment_lua_code(line)
+			file_lines[idx] = generate_line_comment_lua_code(line)
 			print('  Comment line %d :: %s' % (idx + 1, line))
 			file_lines.insert(idx, replace_line)
 			print('  Add line %d :: %s' % (idx + 2, replace_line))
 
+	if missing_events:
 
+		missing_function_events_block = '\n'.join(generate_function_event_block_lua_code(event_id) for event_id in missing_events)
+		missing_function_events_block = generate_block_comment_lua_code(missing_function_events_block)
+		file_lines.append(missing_function_events_block)
 
 # --- MAIN --- #
 
