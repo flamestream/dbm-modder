@@ -194,7 +194,7 @@ def parse_combat_event_register_lua_code(line):
 
 def parse_event_function_lua_code(line):
 
-	matches = re.match(r'function mod:([^(]+)\(args\)', line)
+	matches = re.match(r'function mod:([^(]+)', line)
 
 	if not matches:
 		print("  Error processing event function line: %s" % line)
@@ -267,7 +267,7 @@ def add_generated_code(definition_dict, file_lines):
 
 		if is_register_combat_event_block:
 			if line.startswith(')'):
-				last_line_register_combat_event_block = idx - 1
+				last_line_register_combat_event_block = idx
 				is_register_combat_event_block = False
 			else:
 				event_id, spell_ids, is_last = parse_combat_event_register_lua_code(line)
