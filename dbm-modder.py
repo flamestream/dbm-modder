@@ -136,19 +136,20 @@ def generate_uncomment_lua_code(line):
 
 def parse_combat_event_register_lua_code(line):
 
-	matches = re.match(r'[ \t]*"(\w+) (((\w+)\s*)+)",?', line)
+	matches = re.match(r'[ \t]*"(\w+) (((\w+)\s*)+)"(,?)', line)
 
 	if not matches:
 		print("  Error processing combat event register line: %s" % line)
-		return '', []
+		return '', [], False
 
 	event_id = matches.group(1)
 	spell_ids = set(matches.group(2).split(' '))
-	return event_id, spell_ids
+	is_last = bool(matches.group(3))
+	return event_id, spell_ids, is_last
 
 def parse_event_function_lua_code(line):
 
-	matches = re.match(r'function mod:([^(]+)\(args\)', line)
+	matches = re.match(r'function mod:([^(]+)', line)
 
 	if not matches:
 		print("  Error processing event function line: %s" % line)
@@ -255,11 +256,12 @@ def add_generated_code(definition_dict, file_lines):
 			if line .startswith(')'):
 				is_register_combat_event_block = False
 			else:
-				event_id, spell_ids = parse_combat_event_register_lua_code(line)
+				event_id, spell_ids, is_last = parse_combat_event_register_lua_code(line)
 				if event_id:
 					event_dict[event_id] = {
 						'line': line,
-						'spell_ids': spell_ids
+						'spell_ids': spell_ids,
+						'is_last': is_last
 					}
 			continue
 
@@ -298,7 +300,7 @@ def add_generated_code(definition_dict, file_lines):
 			additional_spell_ids = event_definition_dict.keys() - event_info_dict['spell_ids']
 			if additional_spell_ids:
 				print('  Detected new spell %s IDs %s' % (event_id, additional_spell_ids))
-				replace_line_dict[event_info_dict['line']] = '\t"%s %s",%s' % (event_id, ' '.join(event_info_dict['spell_ids'] | additional_spell_ids), LUA_COMMENT_LINE)
+				replace_line_dict[event_info_dict['line']] = '\t"%s %s"%s%s' % (event_id, ' '.join(event_info_dict['spell_ids'] | additional_spell_ids), "" if is_last else ",", LUA_COMMENT_LINE)
 
 	event_func_checks = tuple(event_func_checks)
 
