@@ -16,6 +16,8 @@ DEFAULT_PREMONITION_CHAT_CHANNEL = 'YELL'
 DEFAULT_PREMONITION_CHAT_MESSAGE = r'%.0f seconds'
 DEFAULT_EVENT_CHAT_CHANNEL = 'YELL'
 
+EVENT_ARG_TYPE_SPECIAL = ['UNIT_SPELLCAST_SUCCEEDED']
+
 def main(args):
 
 	# Read command line
@@ -158,12 +160,12 @@ def generate_event_chat_table_block_lua_code(event_definition_dict):
 
 	return out
 
-def generate_event_block_lua_code(event_id):
+def generate_event_block_lua_code(event_id, spellid_arg):
 
 	out = '''
-	fs_args = fs_chatArgsRegistry["%s"][args.spellId]
+	fs_args = fs_chatArgsRegistry["%s"][%s]
 	if fs_args then SendChatMessage(fs_args[1], fs_args[2]) end
-''' % event_id
+''' % (event_id, spellid_arg)
 
 	return out
 
@@ -194,14 +196,27 @@ def parse_combat_event_register_lua_code(line):
 
 def parse_event_function_lua_code(line):
 
-	matches = re.match(r'function mod:([^(]+)', line)
+	matches = re.match(r'function mod:([^(]+)\(([^)]+)\)', line)
 
 	if not matches:
 		print("  Error processing event function line: %s" % line)
 		return
 
 	event_id = matches.group(1)
-	return event_id
+	arg_str = matches.group(2)
+	args = arg_str.split(',')
+
+	# Default spell ID
+	spellid_arg = args[0] + '.spellId'
+
+	# Special func proto check
+	if event_id in EVENT_ARG_TYPE_SPECIAL:
+		spellid_arg = args[4].strip()
+
+	print("  -------EVENT IODF: %s" % event_id)
+	print("  -------EVENT ARGS: %s" % spellid_arg)
+
+	return event_id, spellid_arg
 
 # --- ADD/REMOVE LINE LOGIC --- #
 
@@ -378,13 +393,13 @@ def add_generated_code(definition_dict, file_lines):
 
 		elif line.startswith(event_func_checks):
 
-			event_id = parse_event_function_lua_code(line)
+			event_id, spellid_arg = parse_event_function_lua_code(line)
 
 			if not event_id:
 				print('  Error processing line %d :: %s' % (idx + 1, line))
 				continue
 
-			new_line = generate_block_comment_lua_code(generate_event_block_lua_code(event_id))
+			new_line = generate_block_comment_lua_code(generate_event_block_lua_code(event_id, spellid_arg))
 			file_lines.insert(idx + 1, new_line)
 			print('  Add %s event code at line %d (%d lines)' % (event_id, idx + 1, len(helper_code.splitlines())))
 
