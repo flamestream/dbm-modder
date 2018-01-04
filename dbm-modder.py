@@ -213,9 +213,6 @@ def parse_event_function_lua_code(line):
 	if event_id in EVENT_ARG_TYPE_SPECIAL:
 		spellid_arg = args[4].strip()
 
-	print("  -------EVENT IODF: %s" % event_id)
-	print("  -------EVENT ARGS: %s" % spellid_arg)
-
 	return event_id, spellid_arg
 
 # --- ADD/REMOVE LINE LOGIC --- #
