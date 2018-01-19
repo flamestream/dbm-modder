@@ -164,7 +164,13 @@ def generate_event_block_lua_code(event_id, spellid_arg):
 
 	out = '''
 	fs_args = fs_chatArgsRegistry["%s"][%s]
-	if fs_args then SendChatMessage(fs_args[1], fs_args[2]) end
+	if fs_args then
+		if fs_args[2] == "WHISPER" then
+			SendChatMessage(fs_args[1], fs_args[2], nil, args.destName)
+		else
+			SendChatMessage(fs_args[1], fs_args[2])
+		end
+	end
 ''' % (event_id, spellid_arg)
 
 	return out
@@ -191,7 +197,7 @@ def parse_combat_event_register_lua_code(line):
 
 	event_id = matches.group(1)
 	spell_ids = set(matches.group(2).split(' '))
-	is_last = bool(matches.group(3))
+	is_last = not bool(matches.group(5))
 	return event_id, spell_ids, is_last
 
 def parse_event_function_lua_code(line):
@@ -331,7 +337,7 @@ def add_generated_code(definition_dict, file_lines):
 			additional_spell_ids = event_definition_dict.keys() - event_info_dict['spell_ids']
 			if additional_spell_ids:
 				print('  Detected new spell %s IDs %s' % (event_id, additional_spell_ids))
-				replace_line_dict[event_info_dict['line']] = '\t"%s %s"%s%s' % (event_id, ' '.join(event_info_dict['spell_ids'] | additional_spell_ids), "" if is_last else ",", LUA_COMMENT_LINE)
+				replace_line_dict[event_info_dict['line']] = '\t"%s %s"%s%s' % (event_id, ' '.join(event_info_dict['spell_ids'] | additional_spell_ids), "" if not is_last else ",", LUA_COMMENT_LINE)
 
 	event_func_checks = tuple(event_func_checks)
 
