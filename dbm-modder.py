@@ -111,6 +111,9 @@ local function fs_yell_%s(premonitionTime)
 	SendChatMessage(string.format("%s", premonitionTime), "%s")
 end
 local function fs_set_%s(self, targetTime, premonitionTime)
+	if type(targetTime) ~= "number" then
+		targetTime = 0
+	end
 	self:Schedule(targetTime-premonitionTime, fs_yell_%s, premonitionTime)
 end
 local function fs_unset_%s(self)
@@ -149,12 +152,14 @@ def generate_event_chat_table_block_lua_code(event_definition_dict):
 
 			channel = spell_event_definition_dict.get('channel', DEFAULT_EVENT_CHAT_CHANNEL)
 			message = spell_event_definition_dict.get('fullMessage')
+			# LUA bool is all lowercase
+			self_only_bool = 'true' if bool(spell_event_definition_dict.get('selfOnly')) else 'false'
 			if not message:
 				label = spell_event_definition_dict.get('alias', spell_id)
 				desc = spell_event_definition_dict.get('message', event_id)
 				message = '[%s] %s' % (label, desc)
 
-			out += '\t\t[%s] = {"%s", "%s"},\n' % (spell_id, message, channel)
+			out += '\t\t[%s] = {"%s", "%s", %s},\n' % (spell_id, message, channel, self_only_bool)
 		out += '\t},\n'
 	out += '}\n'
 
@@ -165,10 +170,14 @@ def generate_event_block_lua_code(event_id, spellid_arg):
 	out = '''
 	fs_args = fs_chatArgsRegistry["%s"][%s]
 	if fs_args then
-		if fs_args[2] == "WHISPER" then
-			SendChatMessage(fs_args[1], fs_args[2], nil, args.destName)
-		else
-			SendChatMessage(fs_args[1], fs_args[2])
+
+		if fs_args[3] and not args:IsPlayer() then
+
+			if fs_args[2] == "WHISPER" then
+				SendChatMessage(fs_args[1], fs_args[2], nil, args.destName)
+			else
+				SendChatMessage(fs_args[1], fs_args[2])
+			end
 		end
 	end
 ''' % (event_id, spellid_arg)
@@ -336,8 +345,11 @@ def add_generated_code(definition_dict, file_lines):
 
 			additional_spell_ids = event_definition_dict.keys() - event_info_dict['spell_ids']
 			if additional_spell_ids:
+				is_last = event_info_dict["is_last"]
+				end_str = "" if is_last else ","
 				print('  Detected new spell %s IDs %s' % (event_id, additional_spell_ids))
-				replace_line_dict[event_info_dict['line']] = '\t"%s %s"%s%s' % (event_id, ' '.join(event_info_dict['spell_ids'] | additional_spell_ids), "" if not is_last else ",", LUA_COMMENT_LINE)
+				replace_line_dict[event_info_dict['line']] = '\t"%s %s"%s%s' % (event_id, ' '.join(event_info_dict['spell_ids'] | additional_spell_ids), end_str, LUA_COMMENT_LINE)
+				print(replace_line_dict[event_info_dict['line']])
 
 	event_func_checks = tuple(event_func_checks)
 
