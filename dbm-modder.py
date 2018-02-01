@@ -171,7 +171,7 @@ def generate_event_block_lua_code(event_id, spellid_arg):
 	fs_args = fs_chatArgsRegistry["%s"][%s]
 	if fs_args then
 
-		if fs_args[3] and not args:IsPlayer() then
+		if args:IsPlayer() or not fs_args[3] then
 
 			if fs_args[2] == "WHISPER" then
 				SendChatMessage(fs_args[1], fs_args[2], nil, args.destName)
