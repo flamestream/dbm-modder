@@ -151,33 +151,32 @@ def generate_event_chat_table_block_lua_code(event_definition_dict):
 		for spell_id, spell_event_definition_dict in current_event_definition_dict.items():
 
 			channel = spell_event_definition_dict.get('channel', DEFAULT_EVENT_CHAT_CHANNEL)
-			message = spell_event_definition_dict.get('fullMessage')
+			message = generate_message(spell_event_definition_dict.get('fullMessage'), spell_event_definition_dict.get('alias', spell_id), spell_event_definition_dict.get('message', event_id))
+			delay = spell_event_definition_dict.get('delay', 0)
 			# LUA bool is all lowercase
 			self_only_bool = 'true' if bool(spell_event_definition_dict.get('selfOnly')) else 'false'
-			if not message:
-				label = spell_event_definition_dict.get('alias', spell_id)
-				desc = spell_event_definition_dict.get('message', event_id)
-				message = '[%s] %s' % (label, desc)
 
-			out += '\t\t[%s] = {"%s", "%s", %s},\n' % (spell_id, message, channel, self_only_bool)
+			out += '\t\t[%s] = {"%s", "%s", %s, %s},\n' % (spell_id, message, channel, self_only_bool, delay)
 		out += '\t},\n'
 	out += '}\n'
 
 	return out
+
+def generate_message(fullMessage, label, desc):
+
+	message = fullMessage
+	if not message:
+		message = '[%s] %s' % (label, desc)
+
+	return message
 
 def generate_event_block_lua_code(event_id, spellid_arg):
 
 	out = '''
 	fs_args = fs_chatArgsRegistry["%s"][%s]
 	if fs_args then
-
 		if args:IsPlayer() or not fs_args[3] then
-
-			if fs_args[2] == "WHISPER" then
-				SendChatMessage(fs_args[1], fs_args[2], nil, args.destName)
-			else
-				SendChatMessage(fs_args[1], fs_args[2])
-			end
+			self:Schedule(fs_args[4], SendChatMessage, fs_args[1], fs_args[2], nil, args.destName)
 		end
 	end
 ''' % (event_id, spellid_arg)
@@ -384,7 +383,8 @@ def add_generated_code(definition_dict, file_lines):
 
 			indent = matches.group(1)
 			timer_id = matches.group(2)
-			target_seconds = matches.group(3) or target_seconds_dict[timer_id]
+			args = matches.group(3) or ''
+			target_seconds = args.split(',')[0] or target_seconds_dict[timer_id]
 			premonition_seconds = premonition_seconds_dict[timer_id]
 
 			new_line = generate_set_premonition_yell_lua_code(indent, timer_id, target_seconds, premonition_seconds)
